@@ -1,4 +1,4 @@
-use crossterm::event::{read, Event};
+use crossterm::event::{read, Event, KeyCode, KeyModifiers};
 use crossterm::terminal::{size, EnterAlternateScreen, LeaveAlternateScreen};
 use crossterm::{execute, terminal};
 use std::error::Error;
@@ -15,7 +15,17 @@ fn main() -> Result<(), MyError> {
     terminal::enable_raw_mode()?;
 
     loop {
-        println!("Read: {:?}", read()?);
+        match read()? {
+            Event::Key(event) => {
+                if event.modifiers.contains(KeyModifiers::CONTROL)
+                    && event.code == KeyCode::Char('q')
+                {
+                    break;
+                }
+                println!("Key event {:?}", event);
+            }
+            _ => (),
+        }
     }
 
     terminal::disable_raw_mode()?;
