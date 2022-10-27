@@ -1,5 +1,6 @@
-use crossterm::execute;
+use crossterm::event::{read, Event};
 use crossterm::terminal::{size, EnterAlternateScreen, LeaveAlternateScreen};
+use crossterm::{execute, terminal};
 use std::error::Error;
 use std::io;
 
@@ -11,9 +12,13 @@ fn main() -> Result<(), MyError> {
 
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen)?;
+    terminal::enable_raw_mode()?;
 
-    std::thread::sleep_ms(5000);
+    loop {
+        println!("Read: {:?}", read()?);
+    }
 
+    terminal::disable_raw_mode()?;
     execute!(stdout, LeaveAlternateScreen)?;
     Ok(())
 }
