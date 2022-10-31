@@ -1,8 +1,11 @@
+mod document;
 mod editor;
 use editor::Editor;
+use std::env;
 use std::io;
 
 fn main() -> Result<(), io::Error> {
-    Editor::default().run()?;
+    let args = env::args().collect::<Vec<String>>();
+    Editor::default().run(args.get(1))?;
     Ok(())
 }

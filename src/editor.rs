@@ -1,14 +1,23 @@
+use crate::document::Document;
 use crossterm::{cursor, event, execute, terminal};
 use event::{Event, KeyCode, KeyEvent, KeyModifiers};
 use std::io;
 
 pub struct Editor {
+    doc: Document,
     cols: u16,
     rows: u16,
 }
 
 impl Editor {
-    pub fn run(&mut self) -> Result<(), io::Error> {
+    pub fn run(&mut self, file_path: Option<&String>) -> Result<(), io::Error> {
+        if let Some(file_path) = file_path {
+            if let Ok(doc) = Document::open(file_path) {
+                // TODO have a way to notify that the file cannot be opened
+                self.doc = doc;
+            }
+        }
+
         self.start()?;
 
         // Infinite loop
@@ -77,18 +86,26 @@ impl Editor {
     }
 
     fn draw_rows(&self) {
-        for r in 1..self.rows {
-            if r == self.rows / 3 {
-                let hello_msg = "Hello world!";
-                let hello_msg = format!(
-                    "{}{}",
-                    " ".repeat(((self.cols - 1) as usize - hello_msg.len()) / 2),
-                    hello_msg
-                );
-                println!("~{}\r", hello_msg);
-            } else {
-                println!("~\r");
+        if self.doc.is_empty() {
+            for r in 1..self.rows {
+                if r == self.rows / 3 {
+                    let hello_msg = "Hello world!";
+                    let hello_msg = format!(
+                        "{}{}",
+                        " ".repeat(((self.cols - 1) as usize - hello_msg.len()) / 2),
+                        hello_msg
+                    );
+                    println!("~{}\r", hello_msg);
+                } else {
+                    println!("~\r");
+                }
             }
+            return;
+        }
+
+        // Draw doc lines
+        for line in &self.doc.lines {
+            println!("{}\r", line);
         }
     }
 }
@@ -96,6 +113,10 @@ impl Editor {
 impl Default for Editor {
     fn default() -> Self {
         let (cols, rows) = terminal::size().expect("Cannot instantiate Editor");
-        Self { cols, rows }
+        Self {
+            doc: Document::default(),
+            cols,
+            rows,
+        }
     }
 }
